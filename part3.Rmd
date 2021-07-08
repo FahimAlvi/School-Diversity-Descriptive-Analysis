@@ -1,0 +1,118 @@
+---
+title: "School Diversity Inference Report"
+author: "Mohammad Fahim Uddin Alvi, Srabon Ratan, Chunyuan Wang, Keying Rao, Wenyi Wang, Yubin Yao"
+
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Load the data set from Github repository
+
+```{r message=FALSE, warning=FALSE}
+#load required libraries
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+
+#laod data set 
+school_diversity <- read.csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-09-24/school_diversity.csv")
+
+```
+
+## Prepare data
+
+
+```{r }
+
+#Drop, which populations are less than 100
+data <- filter(school_diversity, Total >=500)
+
+#gather different races in one column
+data <- gather(school_diversity, "race", "rate", 7:11)
+
+#drop the NA values
+data <- filter(data,rate !="NA" )
+
+#remove outliers from their populaton rate 
+Q <- quantile(data$rate , probs=c(.25, .75), na.rm = FALSE)
+iqr <- IQR(data$rate )
+up <-  Q[2]+1.5*iqr # Upper Range  
+low<- Q[1]-1.5*iqr # Lower Range
+
+data <- subset(data , data$rate > (Q[1] - 1.5*iqr) & data$rate  < (Q[2]+1.5*iqr))
+
+```
+
+
+## Distyribution of different Ethinic students in School
+
+```{r warning=FALSE}
+
+data %>% group_by(race) %>% 
+  summarise(mean = mean(rate)) %>%
+  arrange(desc(mean))  %>% 
+  ggplot(aes(reorder(race,-mean),mean, fill= race)) +geom_histogram(stat = "identity")+
+  labs(x= "Race",title = "Ethinic distribution in School", y= "Population percentage" )
+
+```
+
+
+## Adding other races to compare population of White students with all others 
+
+```{r}
+data$race[data$race != "White"] <- "Other"
+
+
+p1 <- ggplot(data,aes(race)) +geom_histogram(stat = "count" )
+p2 <- ggplot(data,aes(race,rate)) +geom_boxplot( )
+grid.arrange(p1,p2,nrow=1)
+
+```
+
+## Statistical Hypothesis 
+
+Null Hypothesis H0: Population of white students is greater than population of all other races
+Alternative Hypothesis Ha: Population of white students is not greater than population of all other races
+
+## checking for assumptions
+
+The assumption for the test is that both groups are sampled from normal distributions with equal variances.
+
+```{r}
+#sample 1
+qqnorm(data$rate[data$race == "White"])
+#sample 2
+qqnorm(data$rate[data$race == "Other"])
+
+
+```
+
+
+## t-Test
+
+```{r}
+
+t.test(rate ~ race,data, alternative = "greater")
+
+```
+
+## T statistic value 
+T statistic value of the test is -142.39
+
+## p value
+
+P value of the test 1
+
+## Decision
+
+As p value is far greater than 0.05 so we are unable to reject the null hypothesis 
+
+## Conclusion
+
+Population of the white students is greater than the population of the student which belong to the other ethnic groups.
+

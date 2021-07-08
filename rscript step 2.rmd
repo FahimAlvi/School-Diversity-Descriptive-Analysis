@@ -1,0 +1,73 @@
+
+#Loaded the data set from Github repository
+data <- read.csv("Attachment_1614210914.csv")
+head(data)
+
+#Part 1and 2
+
+library(ggplot2)
+
+#Number of respondents in School year 1994-1995 and 2016-2017 
+ggplot(data, aes(x = SCHOOL_YEAR)) +
+  geom_bar(fill = "coral") +
+  theme_classic()
+
+#Number of respondents in each diversity group 
+ggplot(data, aes(x = diverse)) +
+  geom_bar(fill = "coral") +
+  theme_classic()
+
+#Diversity among two school year groups 
+ggplot(data, aes(x = SCHOOL_YEAR, fill = diverse)) +
+  geom_bar(position = position_dodge()) +
+  theme_classic()
+
+
+#Type of school district among two school year groups 
+ggplot(data = na.omit(subset(data, select = c(SCHOOL_YEAR, d_Locale_Txt))), aes(x = SCHOOL_YEAR, fill = d_Locale_Txt)) +
+  geom_bar(position = position_dodge()) +
+  theme_classic()
+
+#Type of school district among diversity groups 
+ggplot(data = na.omit(subset(data, select = c(diverse, d_Locale_Txt))), aes(x = diverse, fill = d_Locale_Txt)) +
+  geom_bar(position = position_dodge()) +
+  theme_classic()
+
+#Summary statistics of American Indian and Alaskan native proportion of student population
+summary(data$AIAN)
+
+#Summary statistics by groups
+tapply(data$AIAN, data$d_Locale_Txt, summary)
+tapply(data$AIAN, data$SCHOOL_YEAR, summary)
+
+
+
+
+# Part 3
+
+#One sample t-test to obtain Confidence Interval of mean American Indian and Alaskan native proportion of student population
+t.test(data$AIAN, conf.level = 0.95)
+
+
+#One sample t-tests to obtain Confidence Intervals of mean proportion of all student groups
+t.test(data$Asian, conf.level = 0.95)
+
+t.test(data$Black, conf.level = 0.95)
+
+t.test(data$Hispanic, conf.level = 0.95)
+
+t.test(data$White, conf.level = 0.95)
+
+t.test(data$Multi, conf.level = 0.95)
+
+
+#Added a new column to data frame containing difference in proportion between Multi-ethnic and Asian groups
+data$d1 <- data$Multi - data$Asian
+
+#One sample t-tests to obtain Confidence Interval of above mean difference
+t.test(data$d1, conf.level = 0.95)
+
+
+
+
+
